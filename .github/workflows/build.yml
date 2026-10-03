@@ -21,15 +21,27 @@ jobs:
       - name: Install dependencies
         run: |
           sudo apt update
-          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libreadline-dev libsqlite3-dev libgdbm-dev libdb5.3-dev libbz2-dev libexpat1-dev liblzma-dev tk-dev libffi-dev libssl-dev ccache
+          sudo apt install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libreadline-dev libsqlite3-dev libgdbm-dev libdb5.3-dev libbz2-dev libexpat1-dev liblzma-dev tk-dev libffi-dev libssl-dev ccache android-sdk
           pip install --upgrade pip
           pip install buildozer cython pexpect
 
-      - name: Build APK with Buildozer
+      - name: Auto Accept Android SDK Licenses
         run: |
           mkdir -p ~/.android
           touch ~/.android/repositories.cfg
-          buildozer -v android debug
+          # Create license files manually so sdkmanager never prompts for y/n
+          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
+          mkdir -p /usr/lib/android-sdk/licenses || true
+          
+          # Standard Android SDK License Hashes
+          echo -e "\n24333f8a637b702e5614fe07607796ec0569b6ea" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+          echo -e "\n84831b9409646a323fefe0471191392ed9298f01" >> ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+          echo -e "\nd975fa133f720099ce173092037e21ed66d1a63a" >> ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+          echo -e "\ne6b7c2ee7d4504d6e982991802cd471185055b35" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
+
+      - name: Build APK with Buildozer
+        run: |
+          yes | buildozer -v android debug
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
